@@ -1,0 +1,33 @@
+version: "3.8"
+networks:
+  backend:
+    name: app
+    driver: bridge
+services:
+  mongo:
+    image: "mongo"
+    container_name: mongo-container
+    environment:
+      - MONGO_INITDB_DATABASE=data-service-db
+      - MONGO_INITDB_ROOT_USERNAME=data-user
+      - MONGO_INITDB_ROOT_PASSWORD=data-pass
+    volumes:
+      - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
+      - ./mongo-volume:/data/db
+    ports:
+      - "27017-27019:27017-27019"
+
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+  kafka:
+    image: wurstmeister/kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: 127.0.0.1
+      KAFKA_CREATE_TOPICS: "words.processed:4:1"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
